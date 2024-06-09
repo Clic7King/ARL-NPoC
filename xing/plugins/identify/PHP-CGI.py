@@ -31,13 +31,10 @@ class Plugin(BasePlugin):
         for payload in payloads:
             url = target + payload
             try:
-                response = http_req(url)
-            except
-
-
-        for path in check_map:
-            url = target + path
-            conn = http_req(url)
-            if check_map[path] in conn.content:
-                self.logger.success("found {} {}".format(self.app_name, url))
-                return url
+                response = http_req(url,"post",headers=headers)
+                response_text = response.content
+                if "Oyst3r" in response_text or "directory" in response_text or "index of" in response_text:
+                    self.logger.success("found {} {}".format(self.app_name, url))
+                    return url
+            except Exception as e:
+                print(f"(!) Error testing {url}: {e}")
